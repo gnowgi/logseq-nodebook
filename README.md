@@ -37,6 +37,10 @@ boiling_point: 100 *C*;
 
 The full CNL syntax is documented in the [nodeBook CNL specification](https://github.com/gnowgi/hedgedoc-nb/blob/main/docs/nodebook-cnl-spec.md).
 
+## Learning the CNL
+
+The public [nodeBook tutorial](https://nodebook.co.in/n/tutorial) walks through the whole language in 17 guided lessons — nodes, relations, attributes, morphs, inference, and process simulation — with live examples you can copy into any fence.
+
 ## Install
 
 From the Logseq **Marketplace**: search for “nodeBook”.
