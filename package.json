@@ -1,6 +1,6 @@
 {
   "name": "logseq-nodebook",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Render nodeBook CNL knowledge graphs from ```nodeBook code fences: interactive concept maps, morphs, inference, containment view, and Petri-net token simulation",
   "license": "AGPL-3.0-only",
   "author": "gnowgi",
@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@logseq/libs": "^0.0.17",
-    "@nodebook/dom": "^0.9.3"
+    "@nodebook/dom": "^0.9.4"
   },
   "devDependencies": {
     "esbuild": "^0.25.12",
