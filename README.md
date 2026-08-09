@@ -1,6 +1,14 @@
+<!--
+SPDX-FileCopyrightText: 2026 The HedgeDoc developers (see AUTHORS file)
+
+SPDX-License-Identifier: CC-BY-SA-4.0
+-->
+
 # logseq-nodebook
 
-Write knowledge as readable **Controlled Natural Language** in a ` ```nodeBook ` code fence — get an interactive knowledge graph in your Logseq notes.
+A [Logseq](https://logseq.com) plugin that renders ` ```nodeBook ` code fences as interactive CNL knowledge graphs — the reference integration for the [`@nodebook/dom`](https://www.npmjs.com/package/@nodebook/dom) package.
+
+Write this in any Logseq block:
 
 ````
 ```nodeBook
@@ -13,51 +21,60 @@ boiling_point: 100 *C*;
 ```
 ````
 
-## Features
+and the fence renders as a pannable, zoomable Cytoscape graph that follows Logseq's light/dark theme.
 
-- **Interactive concept maps** — drag nodes, pan, zoom; light/dark theme follows Logseq.
-- **Inspector panel** — click a node to see its role, attributes, and relations.
-- **Morphs** — polymorphic node states (`## frozen`); switch them live from the inspector.
-- **Inference** — derived facts (transitive `is_a`, membership inheritance) appear as dashed purple edges with proof tooltips.
-- **Containment view** — the *Nest* button draws class hierarchies as boxes-within-boxes.
-- **Process simulation** — transitions (`[Transition]`) with `has prior_state` / `has post_state` arcs render in Petri-net notation (vertical bars, flow-directed arcs); click an enabled transition to fire it and watch tokens move. Great for chemistry, biology, and ecology:
+## How it works
+
+- `logseq.Experiments.registerFencedCodeRenderer('nodeBook', …)` registers a renderer component for the fence (the same experimental API used by [logseq-fenced-code-plus](https://github.com/xyhp915/logseq-fenced-code-plus)).
+- The component uses the **host app's React** (`logseq.Experiments.React`) — the plugin bundles no React.
+- `@nodebook/dom` + Cytoscape are loaded **into the host page once** via `logseq.Experiments.loadScripts('./vendors/nodebook-dom.js')`, so all rendering happens in the host realm (`ensureHostScope().NodeBookDom.renderNodeBook(...)`).
+
+## Install (from this repository)
+
+```bash
+yarn install
+yarn workspace logseq-nodebook build
+```
+
+Then in Logseq:
+
+1. **Settings → Advanced → Developer mode** — enable it.
+2. **⋯ menu → Plugins → Load unpacked plugin** — pick the `apps/logseq-nodebook` directory.
+3. Create a block with a ` ```nodeBook ` fence (type `<` as part of relation syntax normally — inside a code fence Logseq leaves it alone).
+
+To iterate on the plugin: `yarn workspace logseq-nodebook dev` (rebuild on change), then "Reload" the plugin from Logseq's plugin page.
+
+## Files
+
+| File | Runs in | Purpose |
+|------|---------|---------|
+| `src/main.ts` | plugin sandbox | registers the fenced-code renderer (nodeBook/nodebook/NodeBook casings) |
+| `src/nodebook-renderer.ts` | plugin sandbox (host React) | React component: theme tracking, vendor loading, render/destroy lifecycle |
+| `src/vendor-entry.ts` | **host page** | exposes `window.NodeBookDom.renderNodeBook` from `@nodebook/dom` |
+| `build.mjs` | build | esbuild: `dist/main.js` (sandbox) + `vendors/nodebook-dom.js` (host) |
+
+## Schemas: your own type system
+
+nodeBook validates and infers against a type system you can extend three ways:
+
+1. **The schema store page** — on first run the plugin creates the page `nodebook/schemas` seeded with the built-in (factory) schemas as an editable ```nodeBook-schema block. Edit or extend it: your version of a definition wins by name, and every open graph refreshes live.
+2. **Inline schema fences** — any ```nodeBook-schema block renders as a summary panel and contributes its definitions while visible.
+3. **Per-graph links** — start a nodeBook fence with `schemas: [[Physics Types]], [[Chemistry Types]];` to merge those pages' schema fences over the store for that graph only (later pages win by name).
+
+Schema syntax (full reference in the [CNL specification](https://github.com/gnowgi/hedgedoc-nb/blob/main/docs/nodebook-cnl-spec.md)):
 
 ````
-```nodeBook
-# Combustion of Methane [Transition]
-<has prior_state> 2 O2;
-<has prior_state> CH4;
-<has post_state> CO2;
-<has post_state> 2 H2O;
+```nodeBook-schema
+nodeType: Planet, A celestial body orbiting a star, parent: Object
+relationType: orbits, One body orbits another, domain: Planet, range: Star, inverse: is orbited by
+attributeType: diameter, float, Size measurement, unit: km, domain: Planet
 ```
 ````
-
-- **Toolbar** — fit, layout picker, PNG export, and an *Edit* button back to the CNL source.
-- `/nodeBook graph` slash command inserts a starter fence.
-
-The full CNL syntax is documented in the [nodeBook CNL specification](https://github.com/gnowgi/hedgedoc-nb/blob/main/docs/nodebook-cnl-spec.md).
 
 ## Learning the CNL
 
 The public [nodeBook tutorial](https://nodebook.co.in/n/tutorial) walks through the whole language in 17 guided lessons — nodes, relations, attributes, morphs, inference, and process simulation — with live examples you can copy into any fence.
 
-## Install
-
-From the Logseq **Marketplace**: search for “nodeBook”.
-
-Manual / development install:
-
-```bash
-npm install
-npm run build
-```
-
-then Logseq → Settings → Advanced → Developer mode → Plugins → **Load unpacked plugin** → select this directory.
-
-## How it's built
-
-This plugin is a thin integration of the published [`@nodebook/dom`](https://www.npmjs.com/package/@nodebook/dom) renderer (Cytoscape.js) and [`@nodebook/core`](https://www.npmjs.com/package/@nodebook/core) CNL engine. It registers a fenced-code renderer via `logseq.Experiments.registerFencedCodeRenderer`, runs on Logseq's own React, and loads the renderer into the host page once via `loadScripts`. Development happens in the [hedgedoc-nb monorepo](https://github.com/gnowgi/hedgedoc-nb) (`apps/logseq-nodebook`); this repository tracks the standalone releases.
-
 ## License
 
-AGPL-3.0-only — see [LICENSE](LICENSE).
+AGPL-3.0-only.
